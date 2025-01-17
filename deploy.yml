@@ -1,0 +1,33 @@
+- name: Deploy 3-Tier Application
+  hosts: all
+  become: yes
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  tasks:
+    - name: Ensure project directory exists
+      file:
+        path: /var/www/git_pull
+        state: directory
+        owner: root
+        group: root
+        mode: 0775
+
+    - name: Pull the latest code from GitHub
+      git:
+        repo: https://github.com/Laiba-Azam/MySQL_Flask_NginxProxy_3tier_application.git
+        accept_hostkey: yes
+        dest: /var/www/git_pull
+
+    - name: Tear down the application
+      community.docker.docker_compose_v2:
+        project_src: "/var/www/git_pull/3-tier"
+        state: absent
+      register: output
+    - debug:
+        var: output
+    - name: re build the application
+      community.docker.docker_compose_v2:
+        project_src: "/var/www/git_pull/3-tier"
+      register: output
+    - debug:
+        var: output
